@@ -1,0 +1,65 @@
+[project]
+name = "chaos-beats"
+region = "us-east-1"
+plan = "pro"
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["https://*.chaosbeats.com/*"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+
+[db]
+migration_dirs = ["supabase/migrations"]
+
+[storage]
+enabled = true
+file_size_limit = "50MB"
+mime_types = ["audio/mpeg", "audio/wav", "audio/flac", "audio/ogg", "audio/aac"]
+
+[storage.buckets.audio]
+public = false
+allowed_mime_types = ["audio/mpeg", "audio/wav", "audio/flac", "audio/ogg", "audio/aac"]
+file_size_limit = "50MB"
+
+[storage.buckets.covers]
+public = true
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]
+file_size_limit = "5MB"
+
+[storage.buckets.avatars]
+public = true
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]
+file_size_limit = "2MB"
+
+[edge_runtime]
+enabled = true
+policy = "per_function"
+
+[functions.search-songs]
+enabled = true
+verify_jwt = true
+
+[functions.check-offline-access]
+enabled = true
+verify_jwt = false
+
+[functions.app-version-check]
+enabled = true
+verify_jwt = false
+
+[functions.push-notification]
+enabled = true
+verify_jwt = true

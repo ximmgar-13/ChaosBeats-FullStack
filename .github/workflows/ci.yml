@@ -1,0 +1,60 @@
+name: CI - Supabase
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Lint Edge Functions
+        run: |
+          for func in supabase/functions/*/; do
+            if [ -f "$func/index.ts" ]; then
+              echo "Linting $func"
+              deno lint "$func/index.ts"
+            fi
+          done
+
+      - name: Type Check Edge Functions
+        run: |
+          for func in supabase/functions/*/; do
+            if [ -f "$func/index.ts" ]; then
+              echo "Checking $func"
+              deno check "$func/index.ts"
+            fi
+          done
+
+  db-migration-check:
+    name: Database Migration Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase local
+        run: supabase start
+
+      - name: Run migrations
+        run: supabase db push
+
+      - name: Verify RLS policies
+        run: supabase db lint
+
+      - name: Stop Supabase
+        run: supabase stop
