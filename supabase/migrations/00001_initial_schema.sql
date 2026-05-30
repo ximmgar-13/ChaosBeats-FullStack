@@ -26,9 +26,9 @@ create table if not exists public.profiles (
   updated_at  timestamptz not null default now()
 );
 
-create unique index idx_profiles_matricula on public.profiles(matricula);
-create index idx_profiles_rol on public.profiles(rol);
-create index idx_profiles_username on public.profiles(username);
+create unique index if not exists idx_profiles_matricula on public.profiles(matricula);
+create index if not exists idx_profiles_rol on public.profiles(rol);
+create index if not exists idx_profiles_username on public.profiles(username);
 
 -- ============================================================
 -- 2. TABLA SONGS
@@ -53,12 +53,12 @@ create table if not exists public.songs (
   updated_at    timestamptz not null default now()
 );
 
-create index idx_songs_artist on public.songs(artist_id);
-create index idx_songs_genre on public.songs(genre);
-create index idx_songs_created on public.songs(created_at desc);
-create index idx_songs_title_trgm on public.songs using gin (title gin_trgm_ops);
-create index idx_songs_published on public.songs(is_published) where is_published = true;
-create index idx_songs_offline on public.songs(is_offline_available) where is_offline_available = true;
+create index if not exists idx_songs_artist on public.songs(artist_id);
+create index if not exists idx_songs_genre on public.songs(genre);
+create index if not exists idx_songs_created on public.songs(created_at desc);
+create index if not exists idx_songs_title_trgm on public.songs using gin (title gin_trgm_ops);
+create index if not exists idx_songs_published on public.songs(is_published) where is_published = true;
+create index if not exists idx_songs_offline on public.songs(is_offline_available) where is_offline_available = true;
 
 -- ============================================================
 -- 3. TABLA PLAYLISTS
@@ -77,8 +77,8 @@ create table if not exists public.playlists (
   updated_at    timestamptz not null default now()
 );
 
-create index idx_playlists_owner on public.playlists(owner_id);
-create index idx_playlists_public on public.playlists(is_public) where is_public = true;
+create index if not exists idx_playlists_owner on public.playlists(owner_id);
+create index if not exists idx_playlists_public on public.playlists(is_public) where is_public = true;
 
 -- ============================================================
 -- 4. TABLA PLAYLIST_SONGS (relación M:N)
@@ -93,7 +93,7 @@ create table if not exists public.playlist_songs (
   unique(playlist_id, song_id)
 );
 
-create index idx_playlist_songs_playlist on public.playlist_songs(playlist_id);
+create index if not exists idx_playlist_songs_playlist on public.playlist_songs(playlist_id);
 
 -- ============================================================
 -- 5. TABLA FAVORITES
@@ -106,8 +106,8 @@ create table if not exists public.favorites (
   unique(user_id, song_id)
 );
 
-create index idx_favorites_user on public.favorites(user_id);
-create index idx_favorites_song on public.favorites(song_id);
+create index if not exists idx_favorites_user on public.favorites(user_id);
+create index if not exists idx_favorites_song on public.favorites(song_id);
 
 -- ============================================================
 -- 6. TABLA DONATIONS
@@ -125,9 +125,9 @@ create table if not exists public.donations (
   created_at     timestamptz not null default now()
 );
 
-create index idx_donations_artist on public.donations(artist_id);
-create index idx_donations_donor on public.donations(donor_id);
-create index idx_donations_status on public.donations(payment_status);
+create index if not exists idx_donations_artist on public.donations(artist_id);
+create index if not exists idx_donations_donor on public.donations(donor_id);
+create index if not exists idx_donations_status on public.donations(payment_status);
 
 -- ============================================================
 -- 7. TABLA EARLY_LISTENERS
@@ -156,9 +156,9 @@ create table if not exists public.comments (
   updated_at timestamptz not null default now()
 );
 
-create index idx_comments_song on public.comments(song_id);
-create index idx_comments_user on public.comments(user_id);
-create index idx_comments_parent on public.comments(parent_id);
+create index if not exists idx_comments_song on public.comments(song_id);
+create index if not exists idx_comments_user on public.comments(user_id);
+create index if not exists idx_comments_parent on public.comments(parent_id);
 
 -- ============================================================
 -- 9. TABLA SUBSCRIPTIONS (membresías)
@@ -177,9 +177,9 @@ create table if not exists public.subscriptions (
   updated_at             timestamptz not null default now()
 );
 
-create index idx_subscriptions_user on public.subscriptions(user_id);
-create index idx_subscriptions_status on public.subscriptions(status);
-create index idx_subscriptions_stripe on public.subscriptions(stripe_subscription_id);
+create index if not exists idx_subscriptions_user on public.subscriptions(user_id);
+create index if not exists idx_subscriptions_status on public.subscriptions(status);
+create index if not exists idx_subscriptions_stripe on public.subscriptions(stripe_subscription_id);
 
 -- ============================================================
 -- 10. TABLA LISTEN_HISTORY
@@ -195,9 +195,9 @@ create table if not exists public.listen_history (
   ip_address       inet
 );
 
-create index idx_listen_history_user on public.listen_history(user_id);
-create index idx_listen_history_song on public.listen_history(song_id);
-create index idx_listen_history_time on public.listen_history(listened_at desc);
+create index if not exists idx_listen_history_user on public.listen_history(user_id);
+create index if not exists idx_listen_history_song on public.listen_history(song_id);
+create index if not exists idx_listen_history_time on public.listen_history(listened_at desc);
 
 -- ============================================================
 -- 11. TABLA NOTIFICATIONS
@@ -213,8 +213,8 @@ create table if not exists public.notifications (
   created_at timestamptz not null default now()
 );
 
-create index idx_notifications_user on public.notifications(user_id);
-create index idx_notifications_unread on public.notifications(user_id) where is_read = false;
+create index if not exists idx_notifications_user on public.notifications(user_id);
+create index if not exists idx_notifications_unread on public.notifications(user_id) where is_read = false;
 
 -- ============================================================
 -- 12. TABLA USER_SETTINGS
@@ -261,8 +261,8 @@ create table if not exists public.offline_tokens (
   created_at timestamptz not null default now()
 );
 
-create index idx_offline_tokens_user on public.offline_tokens(user_id);
-create index idx_offline_tokens_token on public.offline_tokens(token);
+create index if not exists idx_offline_tokens_user on public.offline_tokens(user_id);
+create index if not exists idx_offline_tokens_token on public.offline_tokens(token);
 
 -- ============================================================
 -- 15. HABILITAR ROW LEVEL SECURITY
@@ -492,7 +492,8 @@ begin
 end;
 $$;
 
-create or replace trigger on_auth_user_created
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
   after insert on auth.users
   for each row
   execute function public.handle_new_user();
@@ -508,26 +509,32 @@ begin
 end;
 $$;
 
+drop trigger if exists trigger_profiles_updated_at on public.profiles;
 create trigger trigger_profiles_updated_at
   before update on public.profiles
   for each row execute function public.update_updated_at_column();
 
+drop trigger if exists trigger_songs_updated_at on public.songs;
 create trigger trigger_songs_updated_at
   before update on public.songs
   for each row execute function public.update_updated_at_column();
 
+drop trigger if exists trigger_playlists_updated_at on public.playlists;
 create trigger trigger_playlists_updated_at
   before update on public.playlists
   for each row execute function public.update_updated_at_column();
 
+drop trigger if exists trigger_comments_updated_at on public.comments;
 create trigger trigger_comments_updated_at
   before update on public.comments
   for each row execute function public.update_updated_at_column();
 
+drop trigger if exists trigger_subscriptions_updated_at on public.subscriptions;
 create trigger trigger_subscriptions_updated_at
   before update on public.subscriptions
   for each row execute function public.update_updated_at_column();
 
+drop trigger if exists trigger_user_settings_updated_at on public.user_settings;
 create trigger trigger_user_settings_updated_at
   before update on public.user_settings
   for each row execute function public.update_updated_at_column();
@@ -654,4 +661,4 @@ create policy "push_tokens_insert" on public.user_push_tokens
 create policy "push_tokens_delete_own" on public.user_push_tokens
   for delete using (user_id = auth.uid());
 
-create index idx_push_tokens_user on public.user_push_tokens(user_id);
+create index if not exists idx_push_tokens_user on public.user_push_tokens(user_id);
