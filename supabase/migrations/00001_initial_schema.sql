@@ -320,28 +320,35 @@ $$;
 -- ============================================================
 
 -- 17a. PROFILES
+drop policy if exists "owner_all_profiles" on public.profiles;
 create policy "owner_all_profiles" on public.profiles
   for all using (get_current_user_role() = 'owner')
   with check (get_current_user_role() = 'owner');
 
+drop policy if exists "admin_select_profiles" on public.profiles;
 create policy "admin_select_profiles" on public.profiles
   for select using (get_current_user_role() = 'admin');
 
+drop policy if exists "admin_insert_profiles" on public.profiles;
 create policy "admin_insert_profiles" on public.profiles
   for insert with check (get_current_user_role() = 'admin');
 
+drop policy if exists "admin_update_profiles" on public.profiles;
 create policy "admin_update_profiles" on public.profiles
   for update using (get_current_user_role() = 'admin')
   with check (get_current_user_role() = 'admin' and rol != 'owner');
 
+drop policy if exists "user_select_own_profile" on public.profiles;
 create policy "user_select_own_profile" on public.profiles
   for select using (id = auth.uid());
 
+drop policy if exists "user_update_own_profile" on public.profiles;
 create policy "user_update_own_profile" on public.profiles
   for update using (id = auth.uid())
   with check (id = auth.uid() and rol = (select rol from public.profiles where id = auth.uid()));
 
 -- 17b. SONGS
+drop policy if exists "songs_select_all_auth" on public.songs;
 create policy "songs_select_all_auth" on public.songs
   for select using (
     is_published = true
@@ -349,139 +356,175 @@ create policy "songs_select_all_auth" on public.songs
     or artist_id = auth.uid()
   );
 
+drop policy if exists "songs_insert_admin_owner" on public.songs;
 create policy "songs_insert_admin_owner" on public.songs
   for insert with check (
     exists (select 1 from public.profiles where id = auth.uid() and rol in ('admin','owner'))
   );
 
+drop policy if exists "songs_update_admin_owner" on public.songs;
 create policy "songs_update_admin_owner" on public.songs
   for update using (
     exists (select 1 from public.profiles where id = auth.uid() and rol in ('admin','owner'))
   );
 
+drop policy if exists "songs_delete_admin_owner" on public.songs;
 create policy "songs_delete_admin_owner" on public.songs
   for delete using (
     exists (select 1 from public.profiles where id = auth.uid() and rol in ('admin','owner'))
   );
 
 -- 17c. PLAYLISTS
+drop policy if exists "playlists_select" on public.playlists;
 create policy "playlists_select" on public.playlists
   for select using (is_public = true or owner_id = auth.uid());
 
+drop policy if exists "playlists_insert_own" on public.playlists;
 create policy "playlists_insert_own" on public.playlists
   for insert with check (owner_id = auth.uid());
 
+drop policy if exists "playlists_update_own" on public.playlists;
 create policy "playlists_update_own" on public.playlists
   for update using (owner_id = auth.uid());
 
+drop policy if exists "playlists_delete_own" on public.playlists;
 create policy "playlists_delete_own" on public.playlists
   for delete using (owner_id = auth.uid());
 
 -- 17d. PLAYLIST_SONGS
+drop policy if exists "playlist_songs_select" on public.playlist_songs;
 create policy "playlist_songs_select" on public.playlist_songs
   for select using (
     exists (select 1 from public.playlists where id = playlist_id and (is_public = true or owner_id = auth.uid()))
   );
 
+drop policy if exists "playlist_songs_insert" on public.playlist_songs;
 create policy "playlist_songs_insert" on public.playlist_songs
   for insert with check (
     exists (select 1 from public.playlists where id = playlist_id and owner_id = auth.uid())
   );
 
+drop policy if exists "playlist_songs_delete" on public.playlist_songs;
 create policy "playlist_songs_delete" on public.playlist_songs
   for delete using (
     exists (select 1 from public.playlists where id = playlist_id and owner_id = auth.uid())
   );
 
 -- 17e. FAVORITES
+drop policy if exists "favorites_select_own" on public.favorites;
 create policy "favorites_select_own" on public.favorites
   for select using (user_id = auth.uid());
 
+drop policy if exists "favorites_insert_own" on public.favorites;
 create policy "favorites_insert_own" on public.favorites
   for insert with check (user_id = auth.uid());
 
+drop policy if exists "favorites_delete_own" on public.favorites;
 create policy "favorites_delete_own" on public.favorites
   for delete using (user_id = auth.uid());
 
 -- 17f. DONATIONS
+drop policy if exists "donations_select_own" on public.donations;
 create policy "donations_select_own" on public.donations
   for select using (donor_id = auth.uid() or artist_id = auth.uid());
 
+drop policy if exists "donations_insert" on public.donations;
 create policy "donations_insert" on public.donations
   for insert with check (donor_id = auth.uid());
 
 -- 17g. EARLY_LISTENERS
+drop policy if exists "early_listeners_select" on public.early_listeners;
 create policy "early_listeners_select" on public.early_listeners
   for select using (true);
 
 -- 17h. COMMENTS
+drop policy if exists "comments_select" on public.comments;
 create policy "comments_select" on public.comments
   for select using (true);
 
+drop policy if exists "comments_insert" on public.comments;
 create policy "comments_insert" on public.comments
   for insert with check (user_id = auth.uid());
 
+drop policy if exists "comments_update_own" on public.comments;
 create policy "comments_update_own" on public.comments
   for update using (user_id = auth.uid());
 
+drop policy if exists "comments_delete_own" on public.comments;
 create policy "comments_delete_own" on public.comments
   for delete using (user_id = auth.uid());
 
 -- 17i. SUBSCRIPTIONS
+drop policy if exists "subscriptions_select_own" on public.subscriptions;
 create policy "subscriptions_select_own" on public.subscriptions
   for select using (user_id = auth.uid());
 
+drop policy if exists "subscriptions_insert" on public.subscriptions;
 create policy "subscriptions_insert" on public.subscriptions
   for insert with check (user_id = auth.uid());
 
+drop policy if exists "subscriptions_update_own" on public.subscriptions;
 create policy "subscriptions_update_own" on public.subscriptions
   for update using (user_id = auth.uid());
 
 -- 17j. LISTEN_HISTORY
+drop policy if exists "listen_history_select_own" on public.listen_history;
 create policy "listen_history_select_own" on public.listen_history
   for select using (user_id = auth.uid());
 
+drop policy if exists "listen_history_insert" on public.listen_history;
 create policy "listen_history_insert" on public.listen_history
   for insert with check (user_id = auth.uid());
 
 -- 17k. NOTIFICATIONS
+drop policy if exists "notifications_select_own" on public.notifications;
 create policy "notifications_select_own" on public.notifications
   for select using (user_id = auth.uid());
 
+drop policy if exists "notifications_update_own" on public.notifications;
 create policy "notifications_update_own" on public.notifications
   for update using (user_id = auth.uid());
 
 -- 17l. USER_SETTINGS
+drop policy if exists "user_settings_select_own" on public.user_settings;
 create policy "user_settings_select_own" on public.user_settings
   for select using (user_id = auth.uid());
 
+drop policy if exists "user_settings_insert_own" on public.user_settings;
 create policy "user_settings_insert_own" on public.user_settings
   for insert with check (user_id = auth.uid());
 
+drop policy if exists "user_settings_update_own" on public.user_settings;
 create policy "user_settings_update_own" on public.user_settings
   for update using (user_id = auth.uid());
 
 -- 17m. APP_VERSIONS
+drop policy if exists "app_versions_select" on public.app_versions;
 create policy "app_versions_select" on public.app_versions
   for select using (true);
 
+drop policy if exists "app_versions_insert_admin_owner" on public.app_versions;
 create policy "app_versions_insert_admin_owner" on public.app_versions
   for insert with check (
     exists (select 1 from public.profiles where id = auth.uid() and rol in ('admin','owner'))
   );
 
+drop policy if exists "app_versions_update_admin_owner" on public.app_versions;
 create policy "app_versions_update_admin_owner" on public.app_versions
   for update using (
     exists (select 1 from public.profiles where id = auth.uid() and rol in ('admin','owner'))
   );
 
 -- 17n. OFFLINE_TOKENS
+drop policy if exists "offline_tokens_select_own" on public.offline_tokens;
 create policy "offline_tokens_select_own" on public.offline_tokens
   for select using (user_id = auth.uid());
 
+drop policy if exists "offline_tokens_insert" on public.offline_tokens;
 create policy "offline_tokens_insert" on public.offline_tokens
   for insert with check (user_id = auth.uid());
 
+drop policy if exists "offline_tokens_update_own" on public.offline_tokens;
 create policy "offline_tokens_update_own" on public.offline_tokens
   for update using (user_id = auth.uid());
 
@@ -681,12 +724,15 @@ create table if not exists public.user_push_tokens (
 
 alter table public.user_push_tokens enable row level security;
 
+drop policy if exists "push_tokens_select_own" on public.user_push_tokens;
 create policy "push_tokens_select_own" on public.user_push_tokens
   for select using (user_id = auth.uid());
 
+drop policy if exists "push_tokens_insert" on public.user_push_tokens;
 create policy "push_tokens_insert" on public.user_push_tokens
   for insert with check (user_id = auth.uid());
 
+drop policy if exists "push_tokens_delete_own" on public.user_push_tokens;
 create policy "push_tokens_delete_own" on public.user_push_tokens
   for delete using (user_id = auth.uid());
 
