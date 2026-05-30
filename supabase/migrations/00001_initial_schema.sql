@@ -141,6 +141,10 @@ create table if not exists public.donations (
   created_at     timestamptz not null default now()
 );
 
+-- Si la tabla ya existía (app móvil), agregar columnas faltantes
+alter table public.donations add column if not exists donor_id uuid;
+alter table public.donations add column if not exists artist_id uuid;
+
 create index if not exists idx_donations_artist on public.donations(artist_id);
 create index if not exists idx_donations_donor on public.donations(donor_id);
 create index if not exists idx_donations_status on public.donations(payment_status);
