@@ -17,7 +17,7 @@ export function AdminSongs() {
   const fetchSongs = async () => {
     const { data } = await supabase
       .from("songs")
-      .select("*, artist:profiles!songs_artist_id_fkey(id, username, display_name, avatar_url)")
+      .select("*, artist:users!songs_artist_id_fkey(id, username, display_name, avatar_url)")
       .order("created_at", { ascending: false });
     setSongs((data as Song[]) || []);
     setLoading(false);

@@ -26,6 +26,14 @@ create table if not exists public.profiles (
   updated_at  timestamptz not null default now()
 );
 
+-- Agregar columnas faltantes si la tabla ya existía
+alter table public.profiles add column if not exists username text;
+alter table public.profiles add column if not exists display_name text;
+alter table public.profiles add column if not exists avatar_url text;
+alter table public.profiles add column if not exists bio text;
+alter table public.profiles add column if not exists language text default 'es';
+alter table public.profiles add column if not exists is_premium boolean not null default false;
+
 create unique index if not exists idx_profiles_matricula on public.profiles(matricula);
 create index if not exists idx_profiles_rol on public.profiles(rol);
 create index if not exists idx_profiles_username on public.profiles(username);
@@ -52,6 +60,14 @@ create table if not exists public.songs (
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
+
+-- Si la tabla ya existía (app móvil), agregar columnas faltantes
+alter table public.songs add column if not exists is_published boolean default true;
+alter table public.songs add column if not exists is_offline_available boolean default false;
+alter table public.songs add column if not exists metadata jsonb not null default '{}'::jsonb;
+alter table public.songs add column if not exists download_count bigint default 0;
+alter table public.songs add column if not exists artist_id uuid;
+alter table public.songs add column if not exists created_by uuid;
 
 create index if not exists idx_songs_artist on public.songs(artist_id);
 create index if not exists idx_songs_genre on public.songs(genre);
@@ -602,9 +618,11 @@ values
 on conflict (id) do nothing;
 
 -- Storage RLS
+drop policy if exists "audio_select" on storage.objects;
 create policy "audio_select" on storage.objects
   for select using (bucket_id = 'audio' and auth.role() = 'authenticated');
 
+drop policy if exists "audio_insert" on storage.objects;
 create policy "audio_insert" on storage.objects
   for insert with check (
     bucket_id = 'audio'
@@ -612,6 +630,7 @@ create policy "audio_insert" on storage.objects
     and exists (select 1 from public.profiles where id = auth.uid() and rol in ('admin','owner'))
   );
 
+drop policy if exists "audio_delete" on storage.objects;
 create policy "audio_delete" on storage.objects
   for delete using (
     bucket_id = 'audio'
@@ -619,21 +638,27 @@ create policy "audio_delete" on storage.objects
     and exists (select 1 from public.profiles where id = auth.uid() and rol in ('admin','owner'))
   );
 
+drop policy if exists "covers_select" on storage.objects;
 create policy "covers_select" on storage.objects
   for select using (bucket_id = 'covers');
 
+drop policy if exists "covers_insert" on storage.objects;
 create policy "covers_insert" on storage.objects
   for insert with check (bucket_id = 'covers' and auth.role() = 'authenticated');
 
+drop policy if exists "covers_delete" on storage.objects;
 create policy "covers_delete" on storage.objects
   for delete using (bucket_id = 'covers' and auth.role() = 'authenticated');
 
+drop policy if exists "avatars_select" on storage.objects;
 create policy "avatars_select" on storage.objects
   for select using (bucket_id = 'avatars');
 
+drop policy if exists "avatars_insert" on storage.objects;
 create policy "avatars_insert" on storage.objects
   for insert with check (bucket_id = 'avatars' and auth.role() = 'authenticated');
 
+drop policy if exists "avatars_delete" on storage.objects;
 create policy "avatars_delete" on storage.objects
   for delete using (bucket_id = 'avatars' and auth.role() = 'authenticated');
 
