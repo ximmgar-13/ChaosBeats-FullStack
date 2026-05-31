@@ -7,6 +7,9 @@ interface Profile {
   email: string;
   matricula: string;
   rol: "owner" | "admin" | "user";
+  display_name?: string;
+  avatar_url?: string;
+  created_at?: string;
   metadata: Record<string, unknown>;
 }
 
@@ -17,6 +20,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (email: string, password: string, matricula: string) => Promise<string | null>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   isAdmin: boolean;
   isOwner: boolean;
 }
@@ -86,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signOut,
+        refreshProfile: () => user ? fetchProfile(user.id) : Promise.resolve(),
         isAdmin: profile?.rol === "admin" || profile?.rol === "owner",
         isOwner: profile?.rol === "owner",
       }}
