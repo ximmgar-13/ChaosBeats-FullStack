@@ -9,9 +9,14 @@ export function AdminUsers() {
   const { isOwner } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const fetchProfiles = async () => {
-    const { data } = await supabase.rpc("list_profiles");
+    const { data, error } = await supabase.rpc("list_profiles");
+    if (error) {
+      setError(error.message);
+      return;
+    }
     setProfiles((data as Profile[]) || []);
     setLoading(false);
   };
@@ -26,7 +31,27 @@ export function AdminUsers() {
       .from("profiles")
       .update({ rol: newRole })
       .eq("id", userId);
-    if (!error) fetchProfiles();
+    if (error) setError(error.message);
+    else fetchProfiles();
+  };
+
+  const handleToggleBan = async (userId: string, currentlyBanned: boolean) => {
+    if (!confirm(currentlyBanned ? "¿Desbanear este usuario?" : "¿Banear este usuario?")) return;
+    const { error } = await supabase.rpc("toggle_ban", {
+      target_user_id: userId,
+      should_ban: !currentlyBanned,
+    });
+    if (error) setError(error.message);
+    else fetchProfiles();
+  };
+
+  const handleDelete = async (userId: string, email: string) => {
+    if (!confirm(`¿Eliminar permanentemente a ${email}?`)) return;
+    const { error } = await supabase.rpc("delete_user", {
+      target_user_id: userId,
+    });
+    if (error) setError(error.message);
+    else fetchProfiles();
   };
 
   return (
@@ -36,6 +61,13 @@ export function AdminUsers() {
           <h1 className="text-2xl font-bold">Gestión de Usuarios</h1>
           <p className="text-gray-400">Administra los perfiles y roles</p>
         </div>
+
+        {error && (
+          <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-4 text-red-400 text-sm">
+            {error}
+            <button onClick={() => setError("")} className="ml-2 underline">Cerrar</button>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-12">
@@ -70,6 +102,7 @@ export function AdminUsers() {
                       >
                         <Shield className="h-3 w-3" />
                         {p.rol}
+                        {p.banned && <span className="text-red-400 ml-1">(Suspendido)</span>}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-500">
@@ -87,8 +120,23 @@ export function AdminUsers() {
                           <option value="admin">admin</option>
                           {isOwner && <option value="owner">owner</option>}
                         </select>
+                        <button
+                          onClick={() => handleToggleBan(p.id, !!p.banned)}
+                          className={`rounded px-2 py-1 text-xs font-medium ${
+                            p.banned
+                              ? "bg-green-600/20 text-green-400 hover:bg-green-600/30"
+                              : "bg-red-600/20 text-red-400 hover:bg-red-600/30"
+                          }`}
+                        >
+                          {p.banned ? "Desbanear" : "Banear"}
+                        </button>
                         {isOwner && p.rol !== "owner" && (
-                          <span className="text-xs text-gray-600">(no eliminar desde aquí)</span>
+                          <button
+                            onClick={() => handleDelete(p.id, p.email)}
+                            className="rounded bg-red-600/20 px-2 py-1 text-xs font-medium text-red-400 hover:bg-red-600/30"
+                          >
+                            Eliminar
+                          </button>
                         )}
                       </div>
                     </td>

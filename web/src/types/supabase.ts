@@ -9,6 +9,7 @@ export interface Profile {
   avatar_url?: string;
   bio?: string;
   rol: ProfileRole;
+  banned?: boolean;
   metadata: Record<string, unknown>;
   language: string;
   is_premium: boolean;
